@@ -27,6 +27,7 @@ namespace StarRezApi
 		#region Declarations
 
 		private string m_baseUrl;
+		private Dictionary<string, string> m_headers = new Dictionary<string, string>();
 
 		#endregion Declarations
 
@@ -41,6 +42,11 @@ namespace StarRezApi
 		/// The password to use in requests to the API
 		/// </summary>
 		public string Password { get; set; }
+		
+		/// <summary>
+		/// Gets or sets a value indicating whether or not to use windows authentication. If no username is set with windows authentication, the default (current user) credentials will be used
+		/// </summary>
+		public bool UseWindowsAuthentication { get; set; }
 
 		/// <summary>
 		/// The HTTP status of the last request to the API. Provided as a reference to learn how to use the API directly.
@@ -67,12 +73,10 @@ namespace StarRezApi
 		#region Constructor
 
 		/// <summary>
-		/// Creates a StarRez REST Api client, with the specified username, password, and at the specified base URL
+		/// Creates a StarRez REST Api client at the specified base URL
 		/// </summary>
-		/// <param name="baseUrl">The url of the web site hosting the services. Can include "/services" or not</param>
-		/// <param name="username">The username to access the services</param>
-		/// <param name="password">The password that matches the username</param>
-		public StarRezApiClient(string baseUrl, string username, string password)
+		/// <param name="baseUrl">The base URL.</param>
+		public StarRezApiClient(string baseUrl)
 		{
 			m_baseUrl = baseUrl;
 			// make sure the Url is how we expect it to be
@@ -86,12 +90,36 @@ namespace StarRezApi
 			{
 				m_baseUrl += "services/";
 			}
+		}
 
+		/// <summary>
+		/// Creates a StarRez REST Api client, with the specified username, password, and at the specified base URL
+		/// </summary>
+		/// <param name="baseUrl">The url of the web site hosting the services. Can include "/services" or not</param>
+		/// <param name="username">The username to access the services</param>
+		/// <param name="password">The password that matches the username</param>
+		public StarRezApiClient(string baseUrl, string username, string password)
+			: this(baseUrl)
+		{
 			this.Username = username;
 			this.Password = password;
 		}
-
+		
 		#endregion Constructor
+
+		#region Methods
+
+		/// <summary>
+		/// Sets a custom header to send on all future requests.
+		/// </summary>
+		/// <param name="header">The header.</param>
+		/// <param name="value">The value.</param>
+		public void SetCustomHeader(string header, string value)
+		{
+			m_headers[header] = value;
+		}
+
+		#endregion Methods
 
 		#region CreateDefault
 
@@ -402,10 +430,26 @@ namespace StarRezApi
 
 			if (!string.IsNullOrEmpty(this.Username))
 			{
-				req.Headers.Add("StarRezUsername", this.Username);
-				req.Headers.Add("StarRezPassword", this.Password);
+				if (this.UseWindowsAuthentication)
+				{
+					req.Credentials = new NetworkCredential(this.Username, this.Password);
+				}
+				else
+				{
+					req.Headers.Add("StarRezUsername", this.Username);
+					req.Headers.Add("StarRezPassword", this.Password);
+				}
 			}
-
+			else if (this.UseWindowsAuthentication)
+			{
+				// blank username and windows auth means to use default credentials
+				req.UseDefaultCredentials = true;
+			}
+			foreach (string key in m_headers.Keys)
+			{
+				req.Headers.Add(key, m_headers[key]);
+			}
+			
 			req.Method = postXml == null ? "GET" : "POST";
 			req.ContentType = "text/xml";
 			req.Accept = "text/xml";
