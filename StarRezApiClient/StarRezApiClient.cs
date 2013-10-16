@@ -27,6 +27,7 @@ namespace StarRezApi
 		#region Declarations
 
 		private string m_baseUrl;
+		private Dictionary<string, string> m_headers = new Dictionary<string, string>();
 
 		#endregion Declarations
 
@@ -41,7 +42,7 @@ namespace StarRezApi
 		/// The password to use in requests to the API
 		/// </summary>
 		public string Password { get; set; }
-
+		
 		/// <summary>
 		/// The HTTP status of the last request to the API. Provided as a reference to learn how to use the API directly.
 		/// </summary>
@@ -92,6 +93,20 @@ namespace StarRezApi
 		}
 
 		#endregion Constructor
+
+		#region Methods
+
+		/// <summary>
+		/// Sets a custom header to send on all future requests.
+		/// </summary>
+		/// <param name="header">The header.</param>
+		/// <param name="value">The value.</param>
+		public void SetCustomHeader(string header, string value)
+		{
+			m_headers[header] = value;
+		}
+
+		#endregion Methods
 
 		#region CreateDefault
 
@@ -405,7 +420,11 @@ namespace StarRezApi
 				req.Headers.Add("StarRezUsername", this.Username);
 				req.Headers.Add("StarRezPassword", this.Password);
 			}
-
+			foreach (string key in m_headers.Keys)
+			{
+				req.Headers.Add(key, m_headers[key]);
+			}
+			
 			req.Method = postXml == null ? "GET" : "POST";
 			req.ContentType = "text/xml";
 			req.Accept = "text/xml";
