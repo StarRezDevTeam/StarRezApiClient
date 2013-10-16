@@ -44,6 +44,11 @@ namespace StarRezApi
 		public string Password { get; set; }
 		
 		/// <summary>
+		/// Gets or sets a value indicating whether or not to use windows authentication. If no username is set with windows authentication, the default (current user) credentials will be used
+		/// </summary>
+		public bool UseWindowsAuthentication { get; set; }
+
+		/// <summary>
 		/// The HTTP status of the last request to the API. Provided as a reference to learn how to use the API directly.
 		/// </summary>
 		public HttpStatusCode LastStatus { get; private set; }
@@ -68,12 +73,10 @@ namespace StarRezApi
 		#region Constructor
 
 		/// <summary>
-		/// Creates a StarRez REST Api client, with the specified username, password, and at the specified base URL
+		/// Creates a StarRez REST Api client at the specified base URL
 		/// </summary>
-		/// <param name="baseUrl">The url of the web site hosting the services. Can include "/services" or not</param>
-		/// <param name="username">The username to access the services</param>
-		/// <param name="password">The password that matches the username</param>
-		public StarRezApiClient(string baseUrl, string username, string password)
+		/// <param name="baseUrl">The base URL.</param>
+		public StarRezApiClient(string baseUrl)
 		{
 			m_baseUrl = baseUrl;
 			// make sure the Url is how we expect it to be
@@ -87,11 +90,21 @@ namespace StarRezApi
 			{
 				m_baseUrl += "services/";
 			}
+		}
 
+		/// <summary>
+		/// Creates a StarRez REST Api client, with the specified username, password, and at the specified base URL
+		/// </summary>
+		/// <param name="baseUrl">The url of the web site hosting the services. Can include "/services" or not</param>
+		/// <param name="username">The username to access the services</param>
+		/// <param name="password">The password that matches the username</param>
+		public StarRezApiClient(string baseUrl, string username, string password)
+			: this(baseUrl)
+		{
 			this.Username = username;
 			this.Password = password;
 		}
-
+		
 		#endregion Constructor
 
 		#region Methods
@@ -417,8 +430,20 @@ namespace StarRezApi
 
 			if (!string.IsNullOrEmpty(this.Username))
 			{
-				req.Headers.Add("StarRezUsername", this.Username);
-				req.Headers.Add("StarRezPassword", this.Password);
+				if (this.UseWindowsAuthentication)
+				{
+					req.Credentials = new NetworkCredential(this.Username, this.Password);
+				}
+				else
+				{
+					req.Headers.Add("StarRezUsername", this.Username);
+					req.Headers.Add("StarRezPassword", this.Password);
+				}
+			}
+			else if (this.UseWindowsAuthentication)
+			{
+				// blank username and windows auth means to use default credentials
+				req.UseDefaultCredentials = true;
 			}
 			foreach (string key in m_headers.Keys)
 			{
