@@ -42,7 +42,7 @@ namespace StarRezApi
 		/// The password to use in requests to the API
 		/// </summary>
 		public string Password { get; set; }
-		
+
 		/// <summary>
 		/// Gets or sets a value indicating whether or not to use windows authentication. If no username is set with windows authentication, the default (current user) credentials will be used
 		/// </summary>
@@ -104,7 +104,7 @@ namespace StarRezApi
 			this.Username = username;
 			this.Password = password;
 		}
-		
+
 		#endregion Constructor
 
 		#region Methods
@@ -358,6 +358,49 @@ namespace StarRezApi
 
 		#endregion Delete
 
+		#region GetReport
+
+		/// <summary>
+		/// Returns the data from a report
+		/// </summary>
+		/// <param name="reportID">The ID of the report</param>
+		/// <param name="criteria">The parameters with which to query the report if any</param>
+		/// <returns>An array of records from the database</returns>
+		public dynamic[] GetReport(int reportID, ICriteria criteria = null)
+		{
+			return GetReport(reportID.ToString(), criteria);
+		}
+
+		/// <summary>
+		/// Returns the data from a report
+		/// </summary>
+		/// <param name="reportName">The name of the report to return or the ID of the report as a string</param>
+		/// <param name="criteria">The parameters with which to query the report if any</param>
+		/// <returns>An array of records from the database</returns>
+		public dynamic[] GetReport(string reportName, ICriteria criteria = null)
+		{
+			if (reportName == null) throw new ArgumentNullException("reportName");
+
+			XElement postXml = null;
+			if (criteria != null)
+			{
+				postXml = new XElement("Parameters");
+				postXml.Add(criteria.ToXml());
+			}
+
+			List<string> urlBits = new List<string> { "getreport", reportName };
+
+			XElement result;
+			HttpStatusCode status = PerformRequest(string.Join("/", urlBits), postXml, out result);
+			if (status == HttpStatusCode.OK)
+			{
+				return result.Elements("Record").Select(x => new ApiObject(x)).ToArray();
+			}
+			return null;
+		}
+
+		#endregion GetReport
+
 		#region Private Helper Methods
 
 		private XElement GetSelectPostData(string tableName, ICriteria criteria, bool includeLookupCaptions, bool loadDeletedAndHiddenRecords, string[] orderby, string[] relatedTables, string[] fields, int top, int pageSize, int pageIndex)
@@ -449,7 +492,7 @@ namespace StarRezApi
 			{
 				req.Headers.Add(key, m_headers[key]);
 			}
-			
+
 			req.Method = postXml == null ? "GET" : "POST";
 			req.ContentType = "text/xml";
 			req.Accept = "text/xml";
