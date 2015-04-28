@@ -59,6 +59,16 @@ namespace StarRezApi
 
 		#region DynamicObject Overrides
 
+		/// <summary>
+		/// Gets raw values from an ApiObject array
+		/// </summary>
+		/// <param name="objectArray">Object array to get raw values from.</param>
+		/// <returns>Raw value as string</returns>
+		public string GetRaw(ApiObject[] objectArray)
+		{
+			return objectArray[0].m_element.Elements().First().ToString(SaveOptions.None);
+		}
+
 		public override bool TryGetMember(System.Dynamic.GetMemberBinder binder, out object result)
 		{
 			// Find the element or elements that match the field name requested
