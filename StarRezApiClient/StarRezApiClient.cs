@@ -62,9 +62,9 @@ namespace StarRezApi
 		public XElement LastResult { get; private set; }
 
 		/// <summary>
-		/// The raw request XML of the last request to the API. Provided as a reference to learn how to use the API directly.
+		/// The raw request of the last request to the API. Provided as a reference to learn how to use the API directly.
 		/// </summary>
-		public XElement LastRequest { get; private set; }
+		public string LastRequest { get; private set; }
 
 		/// <summary>
 		/// The last Url used by the client. Provided as a reference to learn how to use the API directly.
@@ -416,34 +416,80 @@ namespace StarRezApi
 		/// <param name="reportName"></param>
 		/// <param name="criteria"></param>
 		/// <returns></returns>
-		public dynamic[] GetReport(string reportName, ICriteria criteria = null)
-		{
-			XElement postXml = GetReportPostData(reportName, criteria);
-
+		//public dynamic[] GetReport(string reportName, ICriteria criteria = null)
+		//{
+		//	XElement postXml = GetReportPostData(reportName, criteria);
+//
 			return PerformGetReport(reportName, postXml);
-		}
+		//}
 
-		public dynamic[] PerformGetReport(string reportName, XElement postXml)
-		{
-			List<object> urlBits = new List<object> { "getreport", reportName + GetEnumDescription(ReportType) };
+		//public dynamic[] PerformGetReport(string reportName, XElement postXml)
+		//{
+		//	List<object> urlBits = new List<object> { "getreport", reportName + GetEnumDescription(ReportType) };
 			//if (id > -1)
 			//{
 			//    urlBits.Add(id);
 			//}
+		#region GetReport
+
+		/// <summary>
+		/// Returns the data from a report
+		/// </summary>
+		/// <param name="reportID">The ID of the report</param>
+		/// <param name="criteria">The parameters with which to query the report if any</param>
+		/// <returns>An array of records from the database</returns>
+		public dynamic[] GetReport(int reportID, ICriteria criteria = null)
+		{
+			return GetReport(reportID.ToString(), criteria);
+		}
+
+		/// <summary>
+		/// Returns the data from a report
+		/// </summary>
+		/// <param name="reportName">The name of the report to return or the ID of the report as a string</param>
+		/// <param name="criteria">The parameters with which to query the report if any</param>
+		/// <returns>An array of records from the database</returns>
+		public dynamic[] GetReport(string reportName, ICriteria criteria = null)
+		{
+			if (reportName == null) throw new ArgumentNullException("reportName");
+
+			XElement postXml = null;
+			if (criteria != null)
+			{
+				postXml = new XElement("Parameters");
+				postXml.Add(criteria.ToXml());
+			}
+
+			List<string> urlBits = new List<string> { "getreport", reportName };
 
 			XElement result;
 			HttpStatusCode status = PerformRequest(string.Join("/", urlBits), postXml, out result);
 			if (status == HttpStatusCode.OK)
 			{
-				return result.Elements(reportName).Select(x => new ApiObject(x)).ToArray();
+				//return result.Elements(reportName).Select(x => new ApiObject(x)).ToArray();
+				return result.Elements("Record").Select(x => new ApiObject(x)).ToArray();
 			}
 			return null;
 		}
 
+		#endregion GetReport
 
+		#region Query
 
-		#endregion
+		public dynamic[] Query(string query)
+		{
+			if (query == null) throw new ArgumentNullException("query");
 
+			XElement result;
+			HttpStatusCode status = PerformRequest(string.Join("/", "query"), query, out result);
+			if (status == HttpStatusCode.OK)
+			{
+				return result.Elements("Record").Select(x => new ApiObject(x)).ToArray();
+			}
+			return null;
+		}
+
+		#endregion Query
 
 		#region Private Helper Methods
 
@@ -523,6 +569,12 @@ namespace StarRezApi
 
 		private HttpStatusCode PerformRequest(string url, XElement postXml, out XElement result)
 		{
+			string postData = postXml == null ? null : postXml.ToString();
+			return PerformRequest(url, postData, out result);
+		}
+
+		private HttpStatusCode PerformRequest(string url, string postData, out XElement result)
+		{
 			result = null;
 			HttpStatusCode status = HttpStatusCode.BadRequest;
 			HttpWebRequest req = (HttpWebRequest)WebRequest.Create(m_baseUrl + url);
@@ -549,16 +601,16 @@ namespace StarRezApi
 				req.Headers.Add(key, m_headers[key]);
 			}
 
-			req.Method = postXml == null ? "GET" : "POST";
+			req.Method = postData == null ? "GET" : "POST";
 			req.ContentType = "text/xml";
 			req.Accept = "text/xml";
 			try
 			{
-				if (postXml != null)
+				if (postData != null)
 				{
 					using (StreamWriter writer = new StreamWriter(req.GetRequestStream()))
 					{
-						writer.Write(postXml.ToString());
+						writer.Write(postData);
 					}
 				}
 			}
@@ -621,7 +673,7 @@ namespace StarRezApi
 
 			this.LastResult = result;
 			this.LastStatus = status;
-			this.LastRequest = postXml;
+			this.LastRequest = postData;
 			this.LastUrl = m_baseUrl + url;
 
 			return status;
