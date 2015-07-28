@@ -408,7 +408,7 @@ namespace StarRezApi
 
 		#endregion Delete
 
-		#region Reports
+		//#region Reports
 
 		/// <summary>
 		/// reportName must be the actual name of the report not the ID as described in the documentation.  This will fail on the XML transform if the report ID is passed in.
@@ -419,17 +419,17 @@ namespace StarRezApi
 		//public dynamic[] GetReport(string reportName, ICriteria criteria = null)
 		//{
 		//	XElement postXml = GetReportPostData(reportName, criteria);
-//
-			return PerformGetReport(reportName, postXml);
+		//
+		//	return PerformGetReport(reportName, postXml);
 		//}
 
 		//public dynamic[] PerformGetReport(string reportName, XElement postXml)
 		//{
 		//	List<object> urlBits = new List<object> { "getreport", reportName + GetEnumDescription(ReportType) };
-			//if (id > -1)
-			//{
-			//    urlBits.Add(id);
-			//}
+		//if (id > -1)
+		//{
+		//    urlBits.Add(id);
+		//}
 		#region GetReport
 
 		/// <summary>
