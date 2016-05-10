@@ -60,6 +60,16 @@ namespace StarRezApi
 		#region DynamicObject Overrides
 
 		/// <summary>
+		/// Determines whether the specified field exists in this object.
+		/// </summary>
+		/// <param name="name">The name.</param>
+		/// <returns></returns>
+		public bool HasField(string name)
+		{
+			return m_element.Elements(name).Any();
+		}
+
+		/// <summary>
 		/// Gets raw values from an ApiObject array
 		/// </summary>
 		/// <param name="objectArray">Object array to get raw values from.</param>
