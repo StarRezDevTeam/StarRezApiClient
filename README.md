@@ -1,7 +1,7 @@
 StarRezApiClient
 ================
 
-[![Build Status](https://travis-ci.org/StarRezDev/StarRezApiClient.svg?branch=master)](https://travis-ci.org/StarRezDev/StarRezApiClient)
+[![Build Status](https://travis-ci.org/StarRez/StarRezApiClient.svg?branch=master)](https://travis-ci.org/StarRez/StarRezApiClient)
 
 A C# wrapper for the StarRez REST API.
 
