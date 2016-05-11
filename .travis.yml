@@ -1,3 +1,0 @@
-language: csharp
-solution: StarRezApiClient.sln
-mono: alpha
