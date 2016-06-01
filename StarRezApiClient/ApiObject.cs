@@ -25,7 +25,7 @@ namespace StarRezApi
 		/// <summary>
 		/// Gets the name of the source table for the record that this object represents
 		/// </summary>
-		public string TableName
+		public string DBObjectName
 		{
 			get
 			{

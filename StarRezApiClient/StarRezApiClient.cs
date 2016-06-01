@@ -167,10 +167,10 @@ namespace StarRezApi
 			XElement errors = GetErrorsXml(autoFixErrors, autoIgnoreErrors, errorsToIgnore, errorsToFix, errorsToNotIgnore, errorsToNotFix);
 			xml.Add(errors);
 			XElement result;
-			HttpStatusCode status = PerformRequest(string.Join("/", "create", record.TableName), xml, out result);
+			HttpStatusCode status = PerformRequest(string.Join("/", "create", record.DBObjectName), xml, out result);
 			if (status == HttpStatusCode.OK)
 			{
-				return Convert.ToInt32(result.Element(record.TableName + "ID").Value);
+				return Convert.ToInt32(result.Element(record.DBObjectName + "ID").Value);
 			}
 			return -1;
 		}
@@ -299,7 +299,7 @@ namespace StarRezApi
 			XElement errors = GetErrorsXml(autoFixErrors, autoIgnoreErrors, errorsToIgnore, errorsToFix, errorsToNotIgnore, errorsToNotFix);
 			xml.Add(errors);
 			XElement result;
-			HttpStatusCode status = PerformRequest(string.Join("/", "update", record.TableName, record.ID), xml, out result);
+			HttpStatusCode status = PerformRequest(string.Join("/", "update", record.DBObjectName, record.ID), xml, out result);
 			if (status == HttpStatusCode.OK)
 			{
 				record.ClearChanges();
@@ -327,7 +327,7 @@ namespace StarRezApi
 		{
 			if (record == null) throw new ArgumentNullException("record");
 
-			return Delete(record.TableName, Convert.ToInt32(record.ID), autoFixErrors, autoIgnoreErrors, errorsToIgnore, errorsToFix, errorsToNotIgnore, errorsToNotFix);
+			return Delete(record.DBObjectName, Convert.ToInt32(record.ID), autoFixErrors, autoIgnoreErrors, errorsToIgnore, errorsToFix, errorsToNotIgnore, errorsToNotFix);
 		}
 
 		/// <summary>
