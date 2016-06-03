@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
 	<metadata>
-		<id>StarRez Api Client</id>
+		<id>StarRezApiClient</id>
 		<version>1.0.0</version>
 		<authors>StarRez</authors>
 		<owners>StarRez</owners>
