@@ -449,7 +449,7 @@ namespace StarRezApi
 
         private dynamic[] CheckInOut(int id, XElement postXml)
         {
-            List<object> urlBits = new List<object> { "function" };
+            List<object> urlBits = new List<object> { "function", "entry" };
             if (id > -1)
             {
                 urlBits.Add(id);
