@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Xml.Linq;
 
 namespace StarRezApi
@@ -49,9 +50,14 @@ namespace StarRezApi
 		public bool UseWindowsAuthentication { get; set; }
 
 		/// <summary>
-		/// The HTTP status of the last request to the API. Provided as a reference to learn how to use the API directly.
+		/// Gets or sets a value indicating whether to use the legacy StarRezUsername and StarRezPassword headers for authentication. The default for this property is false, which results in using HTTP Basic authentication
 		/// </summary>
-		public HttpStatusCode LastStatus { get; private set; }
+		public bool UseLegacyStarRezAuthentication { get; set; }
+
+        /// <summary>
+        /// The HTTP status of the last request to the API. Provided as a reference to learn how to use the API directly.
+        /// </summary>
+        public HttpStatusCode LastStatus { get; private set; }
 
 		/// <summary>
 		/// The raw result XML of the last request to the API. Provided as a reference to learn how to use the API directly.
@@ -500,10 +506,14 @@ namespace StarRezApi
 				{
 					req.Credentials = new NetworkCredential(this.Username, this.Password);
 				}
-				else
+				else if (this.UseLegacyStarRezAuthentication)
 				{
 					req.Headers.Add("StarRezUsername", this.Username);
 					req.Headers.Add("StarRezPassword", this.Password);
+				}
+				else
+				{
+					req.Headers["Authorization"] = "Basic " + Convert.ToBase64String(Encoding.ASCII.GetBytes(this.Username + ":" + this.Password));
 				}
 			}
 			else if (this.UseWindowsAuthentication)
