@@ -41,7 +41,7 @@ namespace StarRezApi
 	#region Criteria Class
 
 	/// <summary>
-	/// Represents a single field & value criteria
+	/// Represents a single field and value criteria
 	/// </summary>
 	public class Criteria : ICriteria
 	{

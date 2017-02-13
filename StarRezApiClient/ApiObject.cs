@@ -25,7 +25,7 @@ namespace StarRezApi
 		/// <summary>
 		/// Gets the name of the source table for the record that this object represents
 		/// </summary>
-		public string TableName
+		public string DBObjectName
 		{
 			get
 			{
@@ -58,6 +58,16 @@ namespace StarRezApi
 		#endregion Constructor
 
 		#region DynamicObject Overrides
+
+		/// <summary>
+		/// Determines whether the specified field exists in this object.
+		/// </summary>
+		/// <param name="name">The name.</param>
+		/// <returns></returns>
+		public bool HasField(string name)
+		{
+			return m_element.Elements(name).Any();
+		}
 
 		/// <summary>
 		/// Gets raw values from an ApiObject array
