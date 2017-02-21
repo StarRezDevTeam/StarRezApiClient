@@ -1,10 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Reflection;
+using System.Text;
 using System.Xml.Linq;
 
 namespace StarRezApi
@@ -30,7 +29,6 @@ namespace StarRezApi
 
 		private string m_baseUrl;
 		private Dictionary<string, string> m_headers = new Dictionary<string, string>();
-		private ReportTypes m_ReportType = ReportTypes.xml;
 
 		#endregion Declarations
 
@@ -52,6 +50,11 @@ namespace StarRezApi
 		public bool UseWindowsAuthentication { get; set; }
 
 		/// <summary>
+		/// Gets or sets a value indicating whether to use the legacy StarRezUsername and StarRezPassword headers for authentication. The default for this property is false, which results in using HTTP Basic authentication
+		/// </summary>
+		public bool UseLegacyStarRezAuthentication { get; set; }
+
+		/// <summary>
 		/// The HTTP status of the last request to the API. Provided as a reference to learn how to use the API directly.
 		/// </summary>
 		public HttpStatusCode LastStatus { get; private set; }
@@ -71,54 +74,7 @@ namespace StarRezApi
 		/// </summary>
 		public string LastUrl { get; private set; }
 
-		public ReportTypes ReportType
-		{
-			get { return m_ReportType; }
-			set { m_ReportType = value; }
-		}
-
-
-
 		#endregion Properties
-
-		#region Enums
-
-		/// <summary>
-		/// Types of reports that can be returned through the api
-		/// </summary>
-		public enum ReportTypes
-		{
-			[Description(".atom")]
-			atom,
-			[Description(".csv")]
-			csv,
-			[Description(".json")]
-			json,
-			[Description(".htm")]
-			htm,
-			[Description(".html")]
-			html,
-			[Description(".html-xml")]
-			htmlxml,
-			[Description(".xml")]
-			xml
-		}
-
-		public static string GetEnumDescription(Enum value)
-		{
-			FieldInfo fi = value.GetType().GetField(value.ToString());
-
-			DescriptionAttribute[] attributes =
-				(DescriptionAttribute[])fi.GetCustomAttributes(typeof(DescriptionAttribute), false);
-
-			if (attributes != null && attributes.Length > 0)
-				return attributes[0].Description;
-			else
-				return value.ToString();
-		}
-
-
-		#endregion
 
 		#region Constructor
 
@@ -340,7 +296,7 @@ namespace StarRezApi
 		/// <param name="errorsToFix">A list of specific errors to fix, if autoFixErrors is off</param>
 		/// <param name="errorsToNotIgnore">A list of specific errors to not ignore, if autoIgnoreErrors is on</param>
 		/// <param name="errorsToNotFix">A list of specific errors to not fix, if autoFixErrors is on</param>
-		/// <returns>True if the record was successfully updated</returns>
+		/// <returns>True if the record was succesfully updated</returns>
 		public bool Update(ApiObject record, bool autoFixErrors = true, bool autoIgnoreErrors = true, string[] errorsToIgnore = null, string[] errorsToFix = null, string[] errorsToNotIgnore = null, string[] errorsToNotFix = null)
 		{
 			if (record == null) throw new ArgumentNullException("record");
@@ -468,28 +424,6 @@ namespace StarRezApi
 
 		#endregion Function
 
-		//#region Reports
-
-		/// <summary>
-		/// reportName must be the actual name of the report not the ID as described in the documentation.  This will fail on the XML transform if the report ID is passed in.
-		/// </summary>
-		/// <param name="reportName"></param>
-		/// <param name="criteria"></param>
-		/// <returns></returns>
-		//public dynamic[] GetReport(string reportName, ICriteria criteria = null)
-		//{
-		//	XElement postXml = GetReportPostData(reportName, criteria);
-		//
-		//	return PerformGetReport(reportName, postXml);
-		//}
-
-		//public dynamic[] PerformGetReport(string reportName, XElement postXml)
-		//{
-		//	List<object> urlBits = new List<object> { "getreport", reportName + GetEnumDescription(ReportType) };
-		//if (id > -1)
-		//{
-		//    urlBits.Add(id);
-		//}
 		#region GetReport
 
 		/// <summary>
@@ -526,7 +460,6 @@ namespace StarRezApi
 			HttpStatusCode status = PerformRequest(string.Join("/", urlBits), postXml, out result);
 			if (status == HttpStatusCode.OK)
 			{
-				//return result.Elements(reportName).Select(x => new ApiObject(x)).ToArray();
 				return result.Elements("Record").Select(x => new ApiObject(x)).ToArray();
 			}
 			return null;
@@ -591,18 +524,6 @@ namespace StarRezApi
 			return root;
 		}
 
-		private XElement GetReportPostData(string reportName, ICriteria criteria)
-		{
-			if (criteria != null)
-			{
-				XElement root = new XElement("Parameters");
-				root.Add(criteria.ToXml());
-				return root;
-			}
-
-			return null;
-		}
-
 		private XElement GetCheckinOutPostData(string CheckInOut)
 		{
 			XElement root = new XElement("Parameters");
@@ -653,10 +574,14 @@ namespace StarRezApi
 				{
 					req.Credentials = new NetworkCredential(this.Username, this.Password);
 				}
-				else
+				else if (this.UseLegacyStarRezAuthentication)
 				{
 					req.Headers.Add("StarRezUsername", this.Username);
 					req.Headers.Add("StarRezPassword", this.Password);
+				}
+				else
+				{
+					req.Headers["Authorization"] = "Basic " + Convert.ToBase64String(Encoding.ASCII.GetBytes(this.Username + ":" + this.Password));
 				}
 			}
 			else if (this.UseWindowsAuthentication)
