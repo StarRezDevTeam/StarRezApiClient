@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -54,10 +54,10 @@ namespace StarRezApi
 		/// </summary>
 		public bool UseLegacyStarRezAuthentication { get; set; }
 
-        /// <summary>
-        /// The HTTP status of the last request to the API. Provided as a reference to learn how to use the API directly.
-        /// </summary>
-        public HttpStatusCode LastStatus { get; private set; }
+		/// <summary>
+		/// The HTTP status of the last request to the API. Provided as a reference to learn how to use the API directly.
+		/// </summary>
+		public HttpStatusCode LastStatus { get; private set; }
 
 		/// <summary>
 		/// The raw result XML of the last request to the API. Provided as a reference to learn how to use the API directly.
@@ -364,6 +364,66 @@ namespace StarRezApi
 
 		#endregion Delete
 
+		#region Function
+
+		public dynamic CheckIn(int id)
+		{
+			if (id < 0) throw new ArgumentOutOfRangeException("id", id, "ID must be greater than or equal to 0");
+
+			XElement postXml = GetCheckinOutPostData("CheckIn");
+
+			dynamic[] results = CheckInOut(id, postXml);
+			if (results == null || results.Length == 0)
+			{
+				return null;
+			}
+			else
+			{
+				return results[0];
+			}
+
+		}
+
+		public dynamic CheckOut(int id)
+		{
+			if (id < 0) throw new ArgumentOutOfRangeException("id", id, "ID must be greater than or equal to 0");
+
+			XElement postXml = GetCheckinOutPostData("CheckOut");
+
+			dynamic[] results = CheckInOut(id, postXml);
+			if (results == null || results.Length == 0)
+			{
+				return null;
+			}
+			else
+			{
+				return results[0];
+			}
+
+		}
+
+
+		private dynamic[] CheckInOut(int id, XElement postXml)
+		{
+			List<object> urlBits = new List<object> { "function", "entry" };
+			if (id > -1)
+			{
+				urlBits.Add(id);
+				urlBits.Add("CheckInOut");
+			}
+
+			XElement result;
+			HttpStatusCode status = PerformRequest(string.Join("/", urlBits), postXml, out result);
+			if (status == HttpStatusCode.OK)
+			{
+				return result.Elements("CheckInOut").Select(x => new ApiObject(x)).ToArray();
+			}
+			return null;
+		}
+
+
+		#endregion Function
+
 		#region GetReport
 
 		/// <summary>
@@ -461,6 +521,14 @@ namespace StarRezApi
 			{
 				root.Add(new XElement("_orderBy", string.Join(",", orderby)));
 			}
+			return root;
+		}
+
+		private XElement GetCheckinOutPostData(string CheckInOut)
+		{
+			XElement root = new XElement("Parameters");
+			root.Add(new XElement("operation", CheckInOut));
+
 			return root;
 		}
 
