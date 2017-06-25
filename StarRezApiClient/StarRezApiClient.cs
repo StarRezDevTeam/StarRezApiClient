@@ -84,6 +84,9 @@ namespace StarRezApi
 		/// <param name="baseUrl">The base URL.</param>
 		public StarRezApiClient(string baseUrl)
 		{
+			// allow all TLS versions
+			ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+
 			m_baseUrl = baseUrl;
 			// make sure the Url is how we expect it to be
 			// Ensure a trailing slash - makes the check for "services" easier
