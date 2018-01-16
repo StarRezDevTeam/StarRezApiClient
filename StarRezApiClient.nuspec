@@ -6,7 +6,7 @@
 		<authors>StarRez</authors>
 		<owners>StarRez</owners>
 		<licenseUrl>http://www.starrez.com</licenseUrl>
-		<projectUrl>http://www.starrez.com</projectUrl>
+		<projectUrl>https://github.com/StarRez/StarRezApiClient</projectUrl>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<description>StarRez REST Api Client</description>
 		<releaseNotes>A C# api client for StarRez</releaseNotes>
