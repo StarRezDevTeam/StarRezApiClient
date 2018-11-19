@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <Version>2.0.0</Version>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Description>A client wrapper for calling the StarRez REST Api</Description>
     <Company>StarRez Pty Ltd</Company>
