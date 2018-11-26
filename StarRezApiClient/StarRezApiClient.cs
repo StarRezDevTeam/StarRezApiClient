@@ -23,6 +23,7 @@ namespace StarRezApi
 	/// }
 	/// </code>
 	/// </example>
+	/// 
 	public class StarRezApiClient
 	{
 		#region Declarations
