@@ -23,6 +23,7 @@ namespace StarRezApi
 	/// }
 	/// </code>
 	/// </example>
+	/// 
 	public class StarRezApiClient
 	{
 		#region Declarations
@@ -487,6 +488,20 @@ namespace StarRezApi
 
 		#endregion Query
 
+		#region MagicLink
+		public string GenerateMagicLink(int EntryID, string ReturnURL)
+		{
+			if (ReturnURL == null) throw new ArgumentNullException("ReturnURL");
+
+			List<string> urlBits = new List<string> { "studentauth", "generatemagiclink", EntryID.ToString() };
+			string _returnURL = "?returnURL=" + ReturnURL;
+			string result;
+			HttpStatusCode status = PerformRequest(string.Join("/", urlBits) + _returnURL, null, out result);
+
+			return result;
+		}
+		#endregion
+
 		#region Private Helper Methods
 
 		private XElement GetSelectPostData(string tableName, ICriteria criteria, bool includeLookupCaptions, bool loadDeletedAndHiddenRecords, string[] orderby, string[] relatedTables, string[] fields, int top, int pageSize, int pageIndex)
@@ -675,6 +690,116 @@ namespace StarRezApi
 			return status;
 		}
 
+
+		private HttpStatusCode PerformRequest(string url, string postData, out string result)
+		{
+			result = null;
+			HttpStatusCode status = HttpStatusCode.BadRequest;
+			HttpWebRequest req = (HttpWebRequest)WebRequest.Create(m_baseUrl + url);
+
+			if (!string.IsNullOrEmpty(this.Username))
+			{
+				if (this.UseWindowsAuthentication)
+				{
+					req.Credentials = new NetworkCredential(this.Username, this.Password);
+				}
+				else if (this.UseLegacyStarRezAuthentication)
+				{
+					req.Headers.Add("StarRezUsername", this.Username);
+					req.Headers.Add("StarRezPassword", this.Password);
+				}
+				else
+				{
+					req.Headers["Authorization"] = "Basic " + Convert.ToBase64String(Encoding.ASCII.GetBytes(this.Username + ":" + this.Password));
+				}
+			}
+			else if (this.UseWindowsAuthentication)
+			{
+				// blank username and windows auth means to use default credentials
+				req.UseDefaultCredentials = true;
+			}
+			foreach (string key in m_headers.Keys)
+			{
+				req.Headers.Add(key, m_headers[key]);
+			}
+
+			req.Method = postData == null ? "GET" : "POST";
+			req.ContentType = "text/xml";
+			req.Accept = "text/xml";
+			try
+			{
+				if (postData != null)
+				{
+					using (StreamWriter writer = new StreamWriter(req.GetRequestStream()))
+					{
+						writer.Write(postData);
+					}
+				}
+			}
+			catch (WebException ex)
+			{
+				HttpWebResponse response = ex.Response as HttpWebResponse;
+				if (response != null)
+				{
+					using (StreamReader reader = new StreamReader(response.GetResponseStream()))
+					{
+						result = reader.ReadToEnd();
+						status = response.StatusCode;
+					}
+				}
+				else
+				{
+					result = ex.ToString();
+					status = HttpStatusCode.BadRequest;
+				}
+			}
+			catch (Exception ex)
+			{
+				result = result = ex.ToString();
+				status = HttpStatusCode.BadRequest;
+			}
+			if (result == null)
+			{
+				try
+				{
+					HttpWebResponse response = req.GetResponse() as HttpWebResponse;
+					using (StreamReader reader = new StreamReader(response.GetResponseStream()))
+					{
+						result = reader.ReadToEnd();
+					}
+					status = response.StatusCode;
+				}
+				catch (WebException ex)
+				{
+					HttpWebResponse response = ex.Response as HttpWebResponse;
+					if (response != null)
+					{
+						using (StreamReader reader = new StreamReader(response.GetResponseStream()))
+						{
+							result = reader.ReadToEnd();
+						}
+						status = response.StatusCode;
+					}
+					else
+					{
+						result = ex.ToString();
+						status = HttpStatusCode.BadRequest;
+					}
+				}
+				catch (Exception ex)
+				{
+					result = ex.ToString();
+					status = HttpStatusCode.BadRequest;
+				}
+			}
+
+			this.LastResult = new XElement("returnURL", result);
+			this.LastStatus = status;
+			this.LastRequest = postData;
+			this.LastUrl = m_baseUrl + url;
+
+			return status;
+		}
 		#endregion Private Helper Methods
 	}
 }
