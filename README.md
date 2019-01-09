@@ -1,7 +1,7 @@
 StarRezApiClient
 ================
 
-[![Build status]https://ci.appveyor.com/api/projects/status/0oc5l69nfl7636u1?svg=true)](https://ci.appveyor.com/project/StarRezDev/starrezapiclient)
+[![Build status](https://ci.appveyor.com/api/projects/status/0oc5l69nfl7636u1?svg=true)](https://ci.appveyor.com/project/StarRezDev/starrezapiclient)
 
 A C# wrapper for the StarRez REST API.
 
