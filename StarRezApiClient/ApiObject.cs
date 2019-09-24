@@ -10,7 +10,7 @@ namespace StarRezApi
 	/// Provides a dynamic wrapper to an XML fragment that is returned by the web service. Allows a developer to get
 	/// field values and related tables, and also tracks changes when fields are set.
 	/// </summary>
-	[DebuggerDisplay("{TableName}: {ID}")]
+	[DebuggerDisplay("{DBObjectName}: {ID}")]
 	public class ApiObject : System.Dynamic.DynamicObject
 	{
 		#region Declarations
